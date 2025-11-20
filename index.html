@@ -37,33 +37,41 @@
             margin-bottom: 6px;
         }
 
-        /* Search bar */
-        #search {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        /* Table */
+        /* Tables */
         table {
-            width: 100%;
             border-collapse: collapse;
+            width: 100%;
             margin-bottom: 25px;
         }
 
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-
         th {
-            background: #f3f3f3;
+            background-color: #333;
+            color: white;
+            padding: 8px;
             text-align: left;
         }
 
-        tr.hidden {
-            display: none;
+        td {
+            padding: 8px;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        /* Links */
+        .jira-link {
+            color: #0052cc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .jira-link:hover {
+            text-decoration: underline;
         }
 
         /* Collapsible sections */
@@ -77,12 +85,41 @@
             cursor: pointer;
             margin-bottom: 10px;
         }
+
+        /* Floating search bubble */
+        #floating-search-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #floating-search-btn {
+            background-color: #0052cc;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        #floating-search-input {
+            display: none;
+            position: absolute;
+            bottom: 60px;
+            right: 0;
+            width: 250px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
     </style>
 </head>
 
 <body>
-
-    <input type="text" id="search" placeholder="Search links...">
 
     <!-- ===========================
             TOP FIXED 3 COLUMNS
@@ -125,17 +162,21 @@
 
     </div>
 
-
     <!-- ===================================
              DYNAMIC EPHEMERAL TABLE SECTIONS
     ==================================== -->
     <h2>Ephemeral Index</h2>
     <div id="ephemeral-sections"></div>
 
+    <!-- Floating search -->
+    <div id="floating-search-container">
+        <button id="floating-search-btn">🔍</button>
+        <input type="text" id="floating-search-input" placeholder="Search links...">
+    </div>
 
     <script>
         // -----------------------------
-        // Your full list of remaining links
+        // Remaining links
         // -----------------------------
         const remainingLinks = [
             "9171-ephemeral-channel.html",
@@ -185,13 +226,14 @@
             "10386-ephemeral-channel.html",
         ];
 
-        // Helper: get numeric ID or null
+        // -----------------------------
+        // Helpers
+        // -----------------------------
         function getId(name) {
             const match = name.match(/^(\d+)/);
             return match ? parseInt(match[1], 10) : null;
         }
 
-        // Helper: detect type
         function getType(name) {
             if (name.includes("channel")) return "Channel";
             if (name.includes("grid")) return "Grid";
@@ -199,26 +241,24 @@
             return "Widget";
         }
 
-        // Helper: detect environment
         function getEnv(name) {
             if (name.includes("stg")) return "STG";
             if (name.includes("prod")) return "Prod";
             if (name.includes("tst")) return "TST";
-            return "TST"; // Default for ephemeral
+            return "TST"; // default
         }
 
-        // Partition numeric + non-numeric
+        // Partition numeric / non-numeric
         const numericLinks = remainingLinks
-            .map(file => ({ file, id: getId(file) }))
+            .map(f => ({ file: f, id: getId(f) }))
             .filter(x => x.id !== null)
             .sort((a, b) => b.id - a.id);
 
         const nonNumericLinks = remainingLinks
-            .filter(file => getId(file) === null)
+            .filter(f => getId(f) === null)
             .sort();
 
-
-        // Build grouped sections
+        // Ranges
         const ranges = [
             { title: "10000+", min: 10000, max: Infinity },
             { title: "9000–9999", min: 9000, max: 9999 },
@@ -230,15 +270,19 @@
         const container = document.getElementById("ephemeral-sections");
 
         function createTable(rows) {
-            let html = "<table><tr><th>ID</th><th>Environment</th><th>Type</th><th>Link</th></tr>";
+            let html = "<table><thead><tr><th>ID</th><th>Environment</th><th>Type</th><th>Link</th></tr></thead><tbody>";
             rows.forEach(r => {
-                html += `<tr><td>${r.id}</td><td>${r.env}</td><td>${r.type}</td><td><a href="${r.file}">${r.file}</a></td></tr>`;
+                html += `<tr>
+<td><a class="jira-link" target="_blank" rel="noopener noreferrer" href="https://recastapp.atlassian.net/browse/DEV-${r.id}">DEV-${r.id}</a></td>
+<td>${r.env}</td>
+<td>${r.type}</td>
+<td><a target="_blank" href="${r.file}">${r.file}</a></td>
+</tr>`;
             });
-            html += "</table>";
+            html += "</tbody></table>";
             return html;
         }
 
-        // Render numeric sections
         ranges.forEach(range => {
             const rows = numericLinks
                 .filter(x => x.id >= range.min && x.id <= range.max)
@@ -251,47 +295,54 @@
 
             if (rows.length > 0) {
                 container.innerHTML += `
-                    <details open>
-                        <summary>${range.title} (${rows.length})</summary>
-                        ${createTable(rows)}
-                    </details>
-                `;
+<details open>
+<summary>${range.title} (${rows.length})</summary>
+${createTable(rows)}
+</details>`;
             }
         });
 
-        // Non-numeric section
         if (nonNumericLinks.length > 0) {
-            let rows = nonNumericLinks.map(file => ({
+            const rows = nonNumericLinks.map(f => ({
                 id: "",
-                file,
-                type: getType(file),
-                env: getEnv(file)
+                file: f,
+                type: getType(f),
+                env: getEnv(f)
             }));
-
             container.innerHTML += `
-                <details open>
-                    <summary>Non-Numeric (${rows.length})</summary>
-                    ${createTable(rows)}
-                </details>
-            `;
+<details open>
+<summary>Non-Numeric (${rows.length})</summary>
+${createTable(rows)}
+</details>`;
         }
 
-        // ---------------------------------
-        // Search/filter across EVERYTHING
-        // ---------------------------------
-        document.getElementById("search").addEventListener("input", function () {
+        // -----------------------------
+        // Floating search
+        // -----------------------------
+        const searchBtn = document.getElementById("floating-search-btn");
+        const searchInput = document.getElementById("floating-search-input");
+
+        searchBtn.addEventListener("click", () => {
+            if (searchInput.style.display === "block") {
+                searchInput.style.display = "none";
+            } else {
+                searchInput.style.display = "block";
+                searchInput.focus();
+            }
+        });
+
+        searchInput.addEventListener("input", function () {
             const term = this.value.toLowerCase();
 
-            // Filter top list <li> items
+            // Filter top list <li>
             document.querySelectorAll("li").forEach(li => {
                 li.style.display = li.innerText.toLowerCase().includes(term) ? "" : "none";
             });
 
             // Filter table rows
-            document.querySelectorAll("table tr").forEach((tr, idx) => {
-                if (idx === 0) return; // skip header
+            document.querySelectorAll("table tbody tr").forEach(tr => {
                 const text = tr.innerText.toLowerCase();
-                tr.classList.toggle("hidden", !text.includes(term));
+                tr.style.display = text.includes(term) ? "" : "none";
             });
         });
     </script>
