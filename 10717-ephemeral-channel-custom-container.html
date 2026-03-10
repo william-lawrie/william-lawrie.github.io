@@ -16,6 +16,88 @@
     data-widget-id="006735df-b6bc-0ca9-fb9f-933f023311f5" data-container-id="my-widget-location">
     </script>
 
+  <script>
+
+    (function () {
+
+      let resizerLoads = 0;
+
+      const panel = document.createElement("div");
+
+      panel.style.position = "fixed";
+      panel.style.bottom = "10px";
+      panel.style.right = "10px";
+      panel.style.width = "340px";
+      panel.style.maxHeight = "320px";
+      panel.style.overflow = "auto";
+      panel.style.background = "#111";
+      panel.style.color = "#0f0";
+      panel.style.fontFamily = "monospace";
+      panel.style.fontSize = "12px";
+      panel.style.padding = "10px";
+      panel.style.border = "2px solid #0f0";
+      panel.style.zIndex = "999999";
+
+      panel.innerHTML = "<b>Widget Debug Panel</b><br>";
+
+      document.body.appendChild(panel);
+
+      function log(msg) {
+        const el = document.createElement("div");
+        el.textContent = msg;
+        panel.appendChild(el);
+      }
+
+      const widgetScripts = document.querySelectorAll('script[src*="recastpay"]');
+
+      log("Widget scripts detected: " + widgetScripts.length);
+
+      if (widgetScripts.length > 1) {
+        log("Multiple widget scripts present");
+      }
+
+      const observer = new MutationObserver((mutations) => {
+
+        mutations.forEach((mutation) => {
+
+          mutation.addedNodes.forEach((node) => {
+
+            if (node.tagName === "IFRAME") {
+
+              node.style.border = "4px solid #ff4081";
+
+              log("Iframe added → " + node.src);
+
+            }
+
+            if (node.tagName === "SCRIPT") {
+
+              if (node.src.includes("resize") || node.src.includes("resizer")) {
+
+                resizerLoads++;
+
+                log("Resizer injected (" + resizerLoads + ") → " + node.src);
+
+                if (resizerLoads > 1) {
+                  log("WARNING: Resizer loaded multiple times");
+                }
+
+              }
+
+            }
+
+          });
+
+        });
+
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+
+    })();
+
+  </script>
+
 </body>
 
 </html>

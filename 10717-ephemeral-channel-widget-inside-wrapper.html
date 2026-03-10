@@ -3,15 +3,32 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TST - Channel Widget - Brand Name</title>
+  <title>TEST - Widget Inside CMS Wrapper</title>
+
+  <style>
+    .wrapper {
+      border: 2px dashed #888;
+      padding: 20px;
+      margin: 40px;
+    }
+  </style>
+
 </head>
 
 <body>
-  <h>TST - Channel Widget - Brand Name</h>
-  <script src="https://channel-dev-10717.ephemeral.recast.tv/recastpay.js" data-brand-id="8NBe8"
-    data-widget-id="006735df-b6bc-0ca9-fb9f-933f023311f5"></script>
 
+  <h1>TEST – CMS Wrapper</h1>
+
+  <div class="wrapper">
+
+    <div id="widget-a"></div>
+
+    <script src="https://channel-dev-10717.ephemeral.recast.tv/recastpay.js" data-brand-id="8NBe8"
+      data-widget-id="006735df-b6bc-0ca9-fb9f-933f023311f5"
+      data-iframe-resizer-url="https://embedded.tst.recast.tv/iframe/resizer.js" data-container-id="widget-a">
+      </script>
+
+  </div>
 
   <script>
 

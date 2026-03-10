@@ -3,14 +3,30 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TST - Channel Widget - Brand Name</title>
+  <title>TEST - Multiple Widgets - Script Before Container</title>
+
+  <!-- Scripts load first -->
+  <script src="https://channel-dev-10717.ephemeral.recast.tv/recastpay.js" data-brand-id="8NBe8"
+    data-widget-id="006735df-b6bc-0ca9-fb9f-933f023311f5"
+    data-iframe-resizer-url="https://embedded.tst.recast.tv/iframe/resizer.js" data-container-id="widget-a">
+    </script>
+
+  <script src="https://channel-dev-10717.ephemeral.recast.tv/recastpay.js" data-brand-id="8NBe8"
+    data-widget-id="006735df-b6bc-0ca9-fb9f-933f023311f5"
+    data-iframe-resizer-url="https://embedded.tst.recast.tv/iframe/resizer.js" data-container-id="widget-b">
+    </script>
+
 </head>
 
 <body>
-  <h>TST - Channel Widget - Brand Name</h>
-  <script src="https://channel-dev-10717.ephemeral.recast.tv/recastpay.js" data-brand-id="8NBe8"
-    data-widget-id="006735df-b6bc-0ca9-fb9f-933f023311f5"></script>
+
+  <h1>TEST – Script Before Container</h1>
+
+  <div id="widget-a"></div>
+
+  <br><br>
+
+  <div id="widget-b"></div>
 
 
   <script>
