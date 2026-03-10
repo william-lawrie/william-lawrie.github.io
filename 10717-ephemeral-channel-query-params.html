@@ -15,13 +15,8 @@
     </script>
 
   <script>
-
     (function () {
-
-      let resizerLoads = 0;
-
       const panel = document.createElement("div");
-
       panel.style.position = "fixed";
       panel.style.bottom = "10px";
       panel.style.right = "10px";
@@ -35,9 +30,7 @@
       panel.style.padding = "10px";
       panel.style.border = "2px solid #0f0";
       panel.style.zIndex = "999999";
-
       panel.innerHTML = "<b>Widget Debug Panel</b><br>";
-
       document.body.appendChild(panel);
 
       function log(msg) {
@@ -46,54 +39,49 @@
         panel.appendChild(el);
       }
 
+      // Track widget scripts
       const widgetScripts = document.querySelectorAll('script[src*="recastpay"]');
-
       log("Widget scripts detected: " + widgetScripts.length);
-
       if (widgetScripts.length > 1) {
-        log("Multiple widget scripts present");
+        log("⚠ Multiple widget scripts present");
       }
 
+      // Track iframes
       const observer = new MutationObserver((mutations) => {
-
         mutations.forEach((mutation) => {
-
           mutation.addedNodes.forEach((node) => {
-
             if (node.tagName === "IFRAME") {
-
               node.style.border = "4px solid #ff4081";
-
               log("Iframe added → " + node.src);
-
             }
-
-            if (node.tagName === "SCRIPT") {
-
-              if (node.src.includes("resize") || node.src.includes("resizer")) {
-
-                resizerLoads++;
-
-                log("Resizer injected (" + resizerLoads + ") → " + node.src);
-
-                if (resizerLoads > 1) {
-                  log("WARNING: Resizer loaded multiple times");
-                }
-
-              }
-
-            }
-
           });
-
         });
-
       });
-
       observer.observe(document.body, { childList: true, subtree: true });
 
-    })();
+      // Track resizer script by monitoring network GET requests
+      // Modern browsers allow overriding fetch / XMLHttpRequest for test purposes
+      let resizerLoaded = false;
 
+      const originalFetch = window.fetch;
+      window.fetch = function (...args) {
+        if (args[0].toString().includes("/iframe/resizer.js") && !resizerLoaded) {
+          resizerLoaded = true;
+          log("Resizer loaded via network → " + args[0]);
+        }
+        return originalFetch.apply(this, args);
+      };
+
+      // Optional fallback: detect global iFrameResize function
+      const checkGlobal = setInterval(() => {
+        if (window.iFrameResize && !resizerLoaded) {
+          resizerLoaded = true;
+          log("Resizer detected (iFrameResize function present)");
+          clearInterval(checkGlobal);
+        }
+      }, 100);
+
+    })();
   </script>
 
 </body>
