@@ -1,16 +1,88 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TST - Video Grid Widget - Channel Chat</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TST - Channel Widget - Brand Name</title>
 </head>
 
 <body>
-  <h>TST - Video Grid Widget - Channel Chat</h>
+  <h>TST - Channel Widget - Brand Name</h>
   <script src="https://embedded.tst.recast.tv/recastpay.js" data-brand-id="8NBe8"
     data-widget-id="0067371e-c5dc-da43-34f0-7e5292d75853"></script>
+
+
+  <script>
+    (function () {
+      const panel = document.createElement("div");
+      panel.style.position = "fixed";
+      panel.style.bottom = "10px";
+      panel.style.right = "10px";
+      panel.style.width = "340px";
+      panel.style.maxHeight = "320px";
+      panel.style.overflow = "auto";
+      panel.style.background = "#111";
+      panel.style.color = "#0f0";
+      panel.style.fontFamily = "monospace";
+      panel.style.fontSize = "12px";
+      panel.style.padding = "10px";
+      panel.style.border = "2px solid #0f0";
+      panel.style.zIndex = "999999";
+      panel.innerHTML = "<b>Widget Debug Panel</b><br>";
+      document.body.appendChild(panel);
+
+      function log(msg) {
+        const el = document.createElement("div");
+        el.textContent = msg;
+        panel.appendChild(el);
+      }
+
+      // Track widget scripts
+      const widgetScripts = document.querySelectorAll('script[src*="recastpay"]');
+      log("Widget scripts detected: " + widgetScripts.length);
+      if (widgetScripts.length > 1) {
+        log("⚠ Multiple widget scripts present");
+      }
+
+      // Track iframes
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.tagName === "IFRAME") {
+              node.style.border = "4px solid #ff4081";
+              log("Iframe added → " + node.src);
+            }
+          });
+        });
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      // Track resizer script by monitoring network GET requests
+      // Modern browsers allow overriding fetch / XMLHttpRequest for test purposes
+      let resizerLoaded = false;
+
+      const originalFetch = window.fetch;
+      window.fetch = function (...args) {
+        if (args[0].toString().includes("/iframe/resizer.js") && !resizerLoaded) {
+          resizerLoaded = true;
+          log("Resizer loaded via network → " + args[0]);
+        }
+        return originalFetch.apply(this, args);
+      };
+
+      // Optional fallback: detect global iFrameResize function
+      const checkGlobal = setInterval(() => {
+        if (window.iFrameResize && !resizerLoaded) {
+          resizerLoaded = true;
+          log("Resizer detected (iFrameResize function present)");
+          clearInterval(checkGlobal);
+        }
+      }, 100);
+
+    })();
+  </script>
+
 </body>
 
 </html>
