@@ -11,6 +11,27 @@
   <h>TST - Channel Widget - Brand Name</h>
   <script src="https://channel-popup-vulnerability.ephemeral.recast.tv/recastpay.js" data-brand-id="8NBe8"
     data-widget-id="006735df-b6bc-0ca9-fb9f-933f023311f5"></script>
+
+
+  <hr>
+
+  <h2>Security Test</h2>
+
+  <button id="openAttacker">Open Attacker Window</button>
+
+  <script>
+    let attackerWindow = null;
+
+    document.getElementById("openAttacker").onclick = function () {
+      attackerWindow = window.open(
+        "http://127.0.0.1:8000/attacker.html",
+        "recastAttacker",
+        "width=600,height=400"
+      );
+
+      console.log("Attacker window:", attackerWindow);
+    };
+  </script>
 </body>
 
 </html>
